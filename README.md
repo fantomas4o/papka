@@ -44,7 +44,7 @@ git clone https://github.com/fantomas4o/papka
 cd papka
 2️⃣ Настройка на директориите
 bash
-Копиране на код
+
 mkdir uploads
 chmod 755 uploads
 3️⃣ PHP конфигурация
