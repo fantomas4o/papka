@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Файлов Мениджър</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📁</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            transition: background 0.3s ease;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: background 0.3s ease;
+        }
+        .header-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .site-logo {
+            position: absolute;
+            left: 0;
+            max-height: 80px;
+            width: auto;
+        }
+        h1 {
+            color: #667eea;
+            margin: 0;
+            font-size: 2.5em;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            transition: color 0.3s ease;
+        }
+        .toolbar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .theme-toggle {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+        }
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.6);
+        }
+        .breadcrumb {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: #f5f7fa;
+            border-radius: 10px;
+            min-width: 200px;
+            transition: background 0.3s ease;
+        }
+        .breadcrumb-item {
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .breadcrumb-item:hover { color: #764ba2; }
+        .breadcrumb-separator { color: #999; }
+        .new-folder-btn {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+        .new-folder-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.6);
+        }
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .upload-area.dragover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #fff;
+        }
+        .upload-area input[type="file"] { display: none; }
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .file-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .file-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        .file-card.folder {
+            background: linear-gradient(135deg, #f0f7ff 0%, #e1effe 100%);
+            border: 1px solid #dbeafe;
+        }
+        .file-card.folder .file-name {
+            color: #1e40af;
+            font-weight: 600;
+        }
+        .file-card.folder .file-info { color: #4b5563; }
+        .file-icon {
+            font-size: 3em;
+            text-align: center;
+            margin-bottom: 15px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+        .file-card.folder .file-icon {
+            background: rgba(255, 255, 255, 0.8);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        .file-card img {
+            max-width: 100%;
+            max-height: 100px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+        .file-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            word-break: break-word;
+            font-size: 0.95em;
+            transition: color 0.3s ease;
+        }
+        .file-info {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 15px;
+            transition: color 0.3s ease;
+        }
+        .file-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn {
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 45%;
+            white-space: nowrap;
+        }
+        .btn-view { background: #667eea; color: white; }
+        .btn-download { background: #48bb78; color: white; }
+        .btn-delete { background: #f56565; color: white; }
+        .btn-open { background: #667eea; color: white; width: 100%; }
+        .file-card.folder .btn-open {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            position: relative;
+            transition: background 0.3s ease;
+        }
+        .modal-content.small { max-width: 500px; }
+        .modal-close {
+            position: absolute;
+            top: 15px; right: 15px;
+            font-size: 2em;
+            cursor: pointer;
+            color: #667eea;
+            background: none;
+            border: none;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .modal-close:hover {
+            background: #f5f7fa;
+            transform: rotate(90deg);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        .notification {
+            position: fixed;
+            top: 20px; right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        .notification.success { background: #48bb78; }
+        .notification.error { background: #f56565; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .search-box { flex: 1; max-width: 300px; }
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .context-menu {
+            display: none;
+            position: fixed;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            width: 180px;
+            z-index: 1000;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .context-menu ul { list-style: none; margin: 0; padding: 5px 0; }
+        .context-menu li {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #4a5568;
+            font-size: 0.9em;
+        }
+        .context-menu li:hover {
+            background: #f7fafc;
+            color: #667eea;
+        }
+        .pagination {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .pagination button {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .pagination button:hover:not(:disabled) {
+            border-color: #667eea;
+            background: #f5f7fa;
+        }
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            color: #ccc;
+        }
+        .page-info {
+            color: #666;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9em;
+            padding-bottom: 20px;
+        }
+        .footer a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.5);
+            transition: all 0.2s;
+        }
+        .footer a:hover {
+            border-bottom-style: solid;
+            opacity: 1;
+        }
+        
+        /* Dark Theme */
+        body.dark-theme { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+        body.dark-theme .container { background: rgba(30, 30, 46, 0.95); }
+        body.dark-theme h1 { color: #818cf8; }
+        body.dark-theme .breadcrumb { background: #252540; }
+        body.dark-theme .breadcrumb-item { color: #818cf8; }
+        body.dark-theme .breadcrumb-item:hover { color: #a5b4fc; }
+        body.dark-theme .upload-area {
+            background: linear-gradient(135deg, #252540 0%, #2d2d44 100%);
+            border-color: #818cf8;
+        }
+        body.dark-theme .upload-area:hover { border-color: #a5b4fc; }
+        body.dark-theme .upload-area.dragover {
+            background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+        }
+        body.dark-theme .upload-area p { color: #a5b4fc; }
+        body.dark-theme .file-card {
+            background: #252540;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        body.dark-theme .file-card:hover { box-shadow: 0 10px 30px rgba(129, 140, 248, 0.3); }
+        body.dark-theme .file-card.folder {
+            background: linear-gradient(135deg, #2d2d44 0%, #3a3a52 100%);
+            border-color: #4a4a68;
+        }
+        body.dark-theme .file-card.folder .file-name { color: #818cf8; }
+        body.dark-theme .file-card.folder .file-info { color: #9ca3af; }
+        body.dark-theme .file-card.folder .file-icon {
+            background: rgba(129, 140, 248, 0.1);
+            color: #818cf8;
+            border-color: rgba(129, 140, 248, 0.3);
+        }
+        body.dark-theme .file-icon { background: linear-gradient(135deg, #2d2d44 0%, #3a3a52 100%); }
+        body.dark-theme .file-name { color: #e5e7eb; }
+        body.dark-theme .file-info { color: #9ca3af; }
+        body.dark-theme .modal { background: rgba(0, 0, 0, 0.9); }
+        body.dark-theme .modal-content { background: #1e1e30; }
+        body.dark-theme .modal-close { color: #818cf8; }
+        body.dark-theme .modal-close:hover { background: #252540; }
+        body.dark-theme .empty-state { color: #9ca3af; }
+        body.dark-theme .search-box input {
+            background: #252540;
+            border-color: #3a3a52;
+            color: #e5e7eb;
+        }
+        body.dark-theme .search-box input:focus {
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+        }
+        body.dark-theme .search-box input::placeholder { color: #6b7280; }
+        body.dark-theme .context-menu {
+            background: #252540;
+            border-color: #3a3a52;
+        }
+        body.dark-theme .context-menu li { color: #e5e7eb; }
+        body.dark-theme .context-menu li:hover {
+            background: #2d2d44;
+            color: #818cf8;
+        }
+        body.dark-theme .pagination button {
+            background: #252540;
+            border-color: #3a3a52;
+            color: #818cf8;
+        }
+        body.dark-theme .pagination button:hover:not(:disabled) {
+            border-color: #818cf8;
+            background: #2d2d44;
+        }
+        body.dark-theme .page-info { color: #9ca3af; }
+        body.dark-theme .form-group label { color: #e5e7eb; }
+        body.dark-theme .form-group input {
+            background: #252540;
+            border-color: #3a3a52;
+            color: #e5e7eb;
+        }
+        body.dark-theme .form-group input:focus { border-color: #818cf8; }
+        body.dark-theme h2 { color: #818cf8; }
+        body.dark-theme .theme-toggle {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+        body.dark-theme .theme-toggle:hover { box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6); }
+        
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.8em; }
+            .files-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+            .toolbar { flex-direction: column; }
+            .breadcrumb, .search-box { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-container">
+            <img src="logo/logo.png" alt="Logo" class="site-logo">
+            <h1>📁 Файлов Мениджър</h1>
+        </div>
+
+        <div class="toolbar">
+            <div class="breadcrumb" id="breadcrumb">
+                <span class="breadcrumb-item" onclick="navigateToFolder('')">🏠 Начало</span>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Търсене..." oninput="filterFiles()">
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
+            <button class="new-folder-btn" onclick="showNewFolderModal()">📁 Нова папка</button>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <p style="font-size: 1.2em; margin-bottom: 20px; color: #667eea;">
+                Пуснете файлове тук или
+            </p>
+            <input type="file" id="fileInput" multiple>
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                Изберете файлове
+            </button>
+        </div>
+
+        <div id="filesList" class="files-grid"></div>
+        <div id="emptyState" class="empty-state">
+            <div class="empty-state-icon">📂</div>
+            <p>Все още няма файлове в тази папка</p>
+        </div>
+
+        <div class="pagination" id="pagination">
+            <button onclick="changePage(-1)" id="prevBtn">« Предишна</button>
+            <span class="page-info" id="pageInfo">Страница 1 от 1</span>
+            <button onclick="changePage(1)" id="nextBtn">Следваща »</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>🎨 Създадено с ❤️ от <a href="https://urocibg.eu/">Федя Серафиев</a></p>
+    </footer>
+
+    <div id="contextMenu" class="context-menu"></div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <div id="folderModal" class="modal">
+        <div class="modal-content small">
+            <button class="modal-close" onclick="closeFolderModal()">×</button>
+            <h2 style="margin-bottom: 20px;">Нова папка</h2>
+            <div class="form-group">
+                <label for="folderName">Име на папката:</label>
+                <input type="text" id="folderName" placeholder="Например: Рецепти, PDF документи...">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-delete" onclick="closeFolderModal()">Откажи</button>
+                <button class="btn btn-download" onclick="createFolder()">Създай</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const filesList = document.getElementById('filesList');
+        const emptyState = document.getElementById('emptyState');
+        const modal = document.getElementById('modal');
+        const modalBody = document.getElementById('modalBody');
+        const folderModal = document.getElementById('folderModal');
+        const breadcrumb = document.getElementById('breadcrumb');
+        const contextMenu = document.getElementById('contextMenu');
+        const pagination = document.getElementById('pagination');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const pageInfo = document.getElementById('pageInfo');
+
+        let currentFolder = '';
+        let allFiles = [];
+        let currentPage = 1;
+        const itemsPerPage = 20;
+        let filteredFiles = [];
+
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (body.classList.contains('dark-theme')) {
+                body.classList.remove('dark-theme');
+                themeToggle.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark-theme');
+                themeToggle.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                themeToggle.textContent = '☀️';
+            }
+        }
+
+        loadTheme();
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function handleFiles(fileList) {
+            Array.from(fileList).forEach(file => {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('folder', currentFolder);
+
+                fetch('upload.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('Файлът е качен успешно!', 'success');
+                            loadFiles();
+                        } else {
+                            showNotification('Грешка: ' + data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showNotification('Грешка при качване', 'error');
+                        console.error('Error:', error);
+                    });
+            });
+        }
+
+        function loadFiles() {
+            fetch(`list.php?folder=${encodeURIComponent(currentFolder)}`)
+                .then(response => response.json())
+                .then(data => {
+                    allFiles = data;
+                    filteredFiles = [...allFiles];
+                    currentPage = 1;
+                    renderFiles();
+                    updateBreadcrumb();
+                })
+                .catch(error => {
+                    console.error('Error loading files:', error);
+                    showNotification('Грешка при зареждане на файловете', 'error');
+                });
+        }
+
+        function filterFiles() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            filteredFiles = allFiles.filter(file =>
+                file.name.toLowerCase().includes(searchTerm)
+            );
+            currentPage = 1;
+            renderFiles();
+        }
+
+        function renderFiles() {
+            if (!filteredFiles || filteredFiles.length === 0) {
+                filesList.style.display = 'none';
+                emptyState.style.display = 'block';
+                pagination.style.display = 'none';
+                return;
+            }
+
+            filesList.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const paginatedItems = filteredFiles.slice(start, end);
+
+            pageInfo.textContent = `Страница ${currentPage} от ${totalPages}`;
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+
+            if (totalPages <= 1) {
+                pagination.style.display = 'none';
+            } else {
+                pagination.style.display = 'flex';
+            }
+
+            filesList.innerHTML = paginatedItems.map(file => {
+                const fileData = JSON.stringify(file).replace(/"/g, '&quot;');
+
+                if (file.isFolder) {
+                    return `
+                        <div class="file-card folder" 
+                             onclick="navigateToFolder('${currentFolder}${file.name}/')"
+                             oncontextmenu="showContextMenu(event, ${fileData})"
+                        >
+                            <div class="file-icon">📁</div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-info">${file.count || 0} елемента</div>
+                            <div class="file-actions">
+                                <button class="btn btn-open" onclick="event.stopPropagation(); navigateToFolder('${currentFolder}${file.name}/')">Отвори</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    const icon = getFileIcon(file.type, file.name);
+                    const size = formatFileSize(file.size);
+
+                    return `
+                        <div class="file-card"
+                             oncontextmenu="showContextMenu(event, ${fileData})"
+                        >
+                            <div class="file-icon">${icon}</div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-info">${size}</div>
+                            <div class="file-actions">
+                                <button class="btn btn-view" onclick="viewFile('${file.path}', '${file.type}')">Преглед</button>
+                                <button class="btn btn-download" onclick="downloadFile('${file.path}')">Сваляне</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        function changePage(delta) {
+            const oldPage = currentPage;
+            currentPage += delta;
+            
+            const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            
+            if (oldPage !== currentPage) {
+                renderFiles();
+                filesList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function showContextMenu(e, file) {
+            e.preventDefault();
+            const { clientX: mouseX, clientY: mouseY } = e;
+
+            let menuItems = '';
+
+            if (file.isFolder) {
+                const path = `${currentFolder}${file.name}`;
+                menuItems = `
+                    <ul class="context-menu-list">
+                        <li onclick="navigateToFolder('${path}/')">📂 Отвори</li>
+                        <li onclick="deleteFolder('${path}')" style="color: #e53e3e;">🗑️ Изтрий</li>
+                    </ul>
+                `;
+            } else {
+                const path = file.path;
+                menuItems = `
+                    <ul class="context-menu-list">
+                        <li onclick="viewFile('${path}', '${file.type}')">👁️ Преглед</li>
+                        <li onclick="downloadFile('${path}')">⬇️ Изтегли</li>
+                        <li onclick="deleteFile('${path}')" style="color: #e53e3e;">🗑️ Изтрий</li>
+                    </ul>
+                `;
+            }
+
+            contextMenu.innerHTML = menuItems;
+            contextMenu.style.display = 'block';
+            
+            // Изчисляваме приблизителни размери
+            const menuWidth = 180;
+            const menuHeight = file.isFolder ? 80 : 120;
+            
+            // Позициониране
+            let left = mouseX;
+            let top = mouseY;
+            
+            // Ако няма място отдясно
+            if (left + menuWidth > window.innerWidth) {
+                left = mouseX - menuWidth;
+            }
+            
+            // Ако няма място отдолу
+            if (top + menuHeight > window.innerHeight) {
+                top = mouseY - menuHeight;
+            }
+            
+            // Ако все още излиза
+            if (left < 0) left = 5;
+            if (top < 0) top = 5;
+            
+            contextMenu.style.left = `${left}px`;
+            contextMenu.style.top = `${top}px`;
+        }
+
+        document.addEventListener('click', () => {
+            contextMenu.style.display = 'none';
+        });
+
+        window.addEventListener('scroll', () => {
+            contextMenu.style.display = 'none';
+        });
+
+        function updateBreadcrumb() {
+            if (!currentFolder) {
+                breadcrumb.innerHTML = '<span class="breadcrumb-item" onclick="navigateToFolder(\'\')">🏠 Начало</span>';
+                return;
+            }
+
+            const parts = currentFolder.split('/').filter(p => p);
+            let html = '<span class="breadcrumb-item" onclick="navigateToFolder(\'\')">🏠 Начало</span>';
+
+            let path = '';
+            parts.forEach((part, index) => {
+                path += part + '/';
+                html += '<span class="breadcrumb-separator">›</span>';
+                html += `<span class="breadcrumb-item" onclick="navigateToFolder('${path}')">${part}</span>`;
+            });
+
+            breadcrumb.innerHTML = html;
+        }
+
+        function navigateToFolder(folder) {
+            currentFolder = folder;
+            document.getElementById('searchInput').value = '';
+            loadFiles();
+        }
+
+
+
+        function getFileIcon(type, name) {
+
+    if (type.startsWith('image/')) {
+        return `<img src="uploads/${currentFolder}${name}" alt="preview" onerror="this.onerror=null; this.outerHTML='🖼️';">`;
+
+    } else if (type === 'application/pdf') {
+        return '📕';
+
+    } else if (type === 'application/zip' || type === 'application/x-zip-compressed') {
+        return '📦';
+
+    } else if (name.toLowerCase().endsWith('.py')) {
+        return '🐍';
+
+    } else if (type.startsWith('text/')) {
+        return '📝';
+
+    } else if (
+        type === 'application/msword' ||
+        type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ) {
+        return '📘';
+
+    } else if (type.startsWith('video/')) {
+        return '🎬';
+
+    } else if (type.startsWith('audio/')) {
+        return '🎵';
+
+    } else {
+        return '📎';
+    }
+}
+
+
+
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function showNewFolderModal() {
+            document.getElementById('folderName').value = '';
+            folderModal.style.display = 'flex';
+            document.getElementById('folderName').focus();
+        }
+
+        function closeFolderModal() {
+            folderModal.style.display = 'none';
+        }
+
+        function createFolder() {
+            const folderName = document.getElementById('folderName').value.trim();
+
+            if (!folderName) {
+                showNotification('Моля въведете име на папката', 'error');
+                return;
+            }
+
+            fetch('create_folder.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `folder=${encodeURIComponent(currentFolder + folderName)}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Папката е създадена успешно!', 'success');
+                        closeFolderModal();
+                        loadFiles();
+                    } else {
+                        showNotification('Грешка: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Грешка при създаване на папка', 'error');
+                    console.error('Error:', error);
+                });
+        }
+
+        function viewFile(filepath, type) {
+            const url = `uploads/${filepath}`;
+            let content = '';
+
+            if (type.startsWith('image/')) {
+                content = `<img src="${url}" style="max-width: 100%; border-radius: 10px;">`;
+                modalBody.innerHTML = content;
+                modal.style.display = 'flex';
+            } else if (type === 'application/pdf') {
+                content = `<embed src="${url}" type="application/pdf" width="100%" height="600px" style="border-radius: 10px;">`;
+                modalBody.innerHTML = content;
+                modal.style.display = 'flex';
+            } else if (type.startsWith('text/')) {
+                fetch(url)
+                    .then(r => r.text())
+                    .then(text => {
+                        modalBody.innerHTML = `<pre style="white-space: pre-wrap; word-wrap: break-word; font-family: monospace; background: #f5f7fa; padding: 20px; border-radius: 10px;">${escapeHtml(text)}</pre>`;
+                        modal.style.display = 'flex';
+                    });
+            } else if (type.startsWith('video/')) {
+                content = `<video controls style="max-width: 100%; border-radius: 10px;"><source src="${url}" type="${type}"></video>`;
+                modalBody.innerHTML = content;
+                modal.style.display = 'flex';
+            } else if (type.startsWith('audio/')) {
+                content = `<audio controls style="width: 100%;"><source src="${url}" type="${type}"></audio>`;
+                modalBody.innerHTML = content;
+                modal.style.display = 'flex';
+            } else {
+                showNotification('Този тип файл не може да се прегледа директно', 'error');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function downloadFile(filepath) {
+            window.location.href = `download.php?file=${encodeURIComponent(filepath)}`;
+        }
+
+        function deleteFile(filepath) {
+            if (confirm('Сигурни ли сте, че искате да изтриете този файл?')) {
+                fetch('delete.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `file=${encodeURIComponent(filepath)}`
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('Файлът е изтрит успешно!', 'success');
+                            loadFiles();
+                        } else {
+                            showNotification('Грешка при изтриване', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showNotification('Грешка при изтриване', 'error');
+                        console.error('Error:', error);
+                    });
+            }
+        }
+
+        function deleteFolder(folderPath) {
+            if (confirm('Сигурни ли сте, че искате да изтриете тази папка и всичко в нея?')) {
+                fetch('delete_folder.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `folder=${encodeURIComponent(folderPath)}`
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('Папката е изтрита успешно!', 'success');
+                            loadFiles();
+                        } else {
+                            showNotification('Грешка при изтриване', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showNotification('Грешка при изтриване', 'error');
+                        console.error('Error:', error);
+                    });
+            }
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        folderModal.addEventListener('click', (e) => {
+            if (e.target === folderModal) {
+                closeFolderModal();
+            }
+        });
+
+        document.getElementById('folderName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                createFolder();
+            }
+        });
+
+        // Load files on page load
+        loadFiles();
+    </script>
+</body>
+
+</html>
