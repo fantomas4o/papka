@@ -11,7 +11,7 @@
 ![Основен изглед](images/screenshot-1.png)
 
 ### Работа с файлове и папки
-![Файлове и папки](images/screenshot-2.jpg)
+![Файлове и папки](images/screenshot-2.png)
 
 ---
 
